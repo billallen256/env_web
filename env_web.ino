@@ -46,36 +46,32 @@ void loop() {
         if (c == '\n' && currentLineIsBlank) {
           // send a standard http response header
           client.println("HTTP/1.1 200 OK");
-          client.println("Content-Type: text/html");
+          client.println("Content-Type: application/json");
           client.println("Connnection: close");
           client.println();
-          client.println("<!DOCTYPE HTML>");
-          client.println("<html>");
-          client.println("<head><title>Environmental Readings</title>");
-          client.println("<meta http-equiv=\"refresh\" content=\"30\">"); // auto-refresh
-          client.println("</head><body style=\"font-family:sans-serif;font-size:20pt;\">");
-          client.println("Sensor: " + sensor.status() + "<br />");
-          client.println("Humidity: " + sensor.humidityStr() + "<br />");
-          client.println("Celsius: " + sensor.celsiusStr() + "<br />");
-          client.println("Fahrenheit: " + sensor.fahrenheitStr() + "<br />");
-          client.println("Kelvin: " + sensor.kelvinStr() + "<br />");
-          client.println("Dew Point: " + sensor.dewPointStr() + "<br />");
-          client.println("</body>");
-          client.println("</html>");
+          String sensorStatus = sensor.status();
+          client.println("{\"sensor\":\"DHT11\", \"status\":\""+sensorStatus+"\", \"readings\":[");
+          
+          if (sensorStatus == "AOK") {
+            client.println("{\"type\":\"humidity\", \"value\":"+sensor.humidityStr()+", \"units\":\"percent\"},");
+            client.println("{\"type\":\"temp\", \"value\":"+sensor.celsiusStr()+", \"units\":\"celsius\"}");
+          }
+          
+          client.println("]}");
           break;
         }
+
         if (c == '\n') {
           // you're starting a new line
           currentLineIsBlank = true;
-        } 
-        else if (c != '\r') {
+        } else if (c != '\r') {
           // you've gotten a character on the current line
           currentLineIsBlank = false;
         }
       }
     }
     // give the web browser time to receive the data
-    delay(1);
+    delay(2);
     // close the connection:
     client.stop();
     Serial.println("client disonnected");
